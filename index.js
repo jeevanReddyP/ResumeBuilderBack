@@ -4,7 +4,7 @@ const dotenv = require("dotenv");
 const ConnecttoDb = require("./config/db");
 
 const router = require("./routes/userRoute");
-const resumeRoutes = require("../BackEnd/routes/resumeRoutes");
+const resumeRoutes = require("./routes/resumeRoutes"); // ✅ FIXED
 
 dotenv.config();
 
@@ -14,7 +14,6 @@ app.use(cors({
   origin: "http://localhost:5173",
   credentials: true
 }));
-
 
 app.use(express.json());
 
@@ -29,10 +28,14 @@ app.use((req, res) => {
   res.status(404).json({ message: "Route not found" });
 });
 
-ConnecttoDb();
-
-const PORT = process.env.PORT || 5000;
-
-app.listen(PORT, () => {
-  console.log(`Server Running on Port ${PORT}`);
-});
+// ✅ Better startup
+ConnecttoDb()
+  .then(() => {
+    const PORT = process.env.PORT || 5000;
+    app.listen(PORT, () => {
+      console.log(`Server Running on Port ${PORT}`);
+    });
+  })
+  .catch((err) => {
+    console.error("DB connection error:", err.message);
+  });
