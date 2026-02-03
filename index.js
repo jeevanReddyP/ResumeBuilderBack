@@ -4,7 +4,7 @@ const dotenv = require("dotenv");
 const ConnecttoDb = require("./config/db");
 
 const router = require("./routes/userRoute");
-const resumeRoutes = require("./routes/resumeRoutes"); // ✅ FIXED
+
 
 dotenv.config();
 
@@ -18,7 +18,6 @@ app.use(cors({
 app.use(express.json());
 
 app.use("/api", router);
-app.use("/api/resume", resumeRoutes);
 
 app.get("/", (req, res) => {
   res.send("Backend Running");

@@ -2,6 +2,8 @@ const express=require("express")
 const User=require("../models/userModel")
 const bcrypt=require("bcryptjs")
 const jwt = require("jsonwebtoken");
+
+
 const RegisterUser = async (req, res) => {
   console.log("Register page")
   try {
