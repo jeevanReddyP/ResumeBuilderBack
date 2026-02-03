@@ -1,6 +1,7 @@
 const jwt=require("jsonwebtoken")
 
 const authMiddelware= async (req,res,next)=>{
+    console.log("Hellonext")
     const token = req.headers.authorization?.split(" ")[1]
 
     if(!token){

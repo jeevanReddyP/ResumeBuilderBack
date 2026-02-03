@@ -74,7 +74,7 @@ console.log("JWT_SECRET VALUE:", process.env.JWT_SECRET);
        })
     } catch (error) {
        console.error("LOGIN ERROR:", err);
-    return res.status(500).json({ message: "Server error" });
+    return res.status(500).json({ message: error.message});
     }
 }
 
