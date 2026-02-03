@@ -1,46 +1,55 @@
-const mongoose=require("mongoose")
-const resumeSchema=new mongoose.Schema(
-    {
-   userId:{
-      type:mongoose.Schema.Types.ObjectId,
-      ref:"User",
-      required:true
+const mongoose = require("mongoose");
+
+const resumeSchema = new mongoose.Schema(
+  {
+    userId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+      required: true,
     },
-    personalInfo:{
-     firstname:String,
-     lastname:String,
-     phone:String,
-     email:String,
-     address:String,
-     linkedin:String,
-     github:String
+
+    personalInfo: {
+      firstname: { type: String, default: "" },
+      lastname: { type: String, default: "" },
+      phone: { type: String, default: "" },
+      email: { type: String, default: "" },
+      address: { type: String, default: "" },
+      linkedin: { type: String, default: "" },
+      github: { type: String, default: "" },
     },
-    education:[
-        {
-            degree:String,
-            institution:String,
-            startYear:Date,
-            endDate:Date
-        }
+
+    education: [
+      {
+        degree: { type: String, default: "" },
+        institution: { type: String, default: "" },
+        startYear: { type: Date, default: null },
+        endDate: { type: Date, default: null },
+      },
     ],
-    experience:[
-        {
-            company:String,
-            role:String,
-            startDate:Date,
-            endDate:{
-               type:Date,
-               default:null
-            },
-            description:String
-        }
+
+    experience: [
+      {
+        company: { type: String, default: "" },
+        role: { type: String, default: "" },
+        startDate: { type: Date, default: null },
+        endDate: { type: Date, default: null },
+        description: { type: String, default: "" },
+      },
     ],
-    skill:[String],
-    projects:[
-        {
-            title:String,
-            description:String,
-            techStack:[String]
-        }
-    ]
-},{timestamps:true})
+
+    // ✅ change "skill" to "skills" to match controller
+    skills: { type: [String], default: [] },
+
+    projects: [
+      {
+        title: { type: String, default: "" },
+        description: { type: String, default: "" },
+        techStack: { type: [String], default: [] },
+      },
+    ],
+  },
+  { timestamps: true }
+);
+
+// ✅ THIS IS REQUIRED (so Resume.create works)
+module.exports = mongoose.model("Resume", resumeSchema);
