@@ -3,6 +3,7 @@ const User=require("../models/userModel")
 const bcrypt=require("bcryptjs")
 const jwt = require("jsonwebtoken");
 const RegisterUser = async (req, res) => {
+  console.log("Register page")
   try {
     const { name, email, password } = req.body;
 console.log("Hello")
@@ -32,6 +33,7 @@ console.log("JWT_SECRET VALUE:", process.env.JWT_SECRET);
       user: { id: user._id, name: user.name, email: user.email }
     });
   } catch (err) {
+    console.log(err.message)
     console.error("REGISTER ERROR:", err);
 
     // ✅ handle duplicate email nicely
@@ -39,7 +41,7 @@ console.log("JWT_SECRET VALUE:", process.env.JWT_SECRET);
       return res.status(400).json({ message: "Email already registered" });
     }
 
-    return res.status(500).json({ message: "Server error" });
+    return res.status(500).json({ message: err.message});
   }
 };
 

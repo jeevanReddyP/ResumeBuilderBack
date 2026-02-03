@@ -14,6 +14,10 @@ const {
 } = require("../controllers/resumeController")
 
 const router = express.Router();
+router.get("/test", (req, res) => {
+  console.log("✅ /api/test HIT");
+  res.json({ ok: true });
+});
 
 // Auth Routes
 router.post("/auth/register", RegisterUser);
