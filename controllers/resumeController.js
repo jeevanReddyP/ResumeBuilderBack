@@ -33,12 +33,16 @@ const puppeteer=require("puppeteer")
     try {
         const userId = req.user.id
         const resumes = await Resume.find({ userId })
+        if(!resumes){
+            return res.status(404).json({Msg:"Resumes are not found!"})
+        }
         res.status(200).json({
             success: true,
             count: resumes.length,
             resumes
         })
     } catch (error) {
+        console.log("Resume.error")
         res.status(500).json({ Msg: error.message })
     }
 }
