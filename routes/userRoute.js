@@ -14,14 +14,6 @@ const {
 } = require("../controllers/resumeController");
 
 const router = express.Router();
-console.log("🔥 userRoute.js LOADED ON RENDER 🔥");
-router.get("/debug/pdf", (req, res) => {
-  res.json({ ok: true, msg: "debug route live" });
-});
-
-router.get("/debug/version", (req, res) => {
-  res.json({ ok: true, time: new Date().toISOString() });
-});
 
 // Test route
 router.get("/test", (req, res) => {
