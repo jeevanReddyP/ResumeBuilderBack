@@ -200,8 +200,8 @@ const downloadResumePDF = async (req, res) => {
     message: err.message,
     stack: err.stack
   });
+  }
 }
-
 
 module.exports = {
   createResume,
