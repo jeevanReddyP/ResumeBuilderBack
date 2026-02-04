@@ -15,6 +15,29 @@ const {
 
 const router = express.Router();
 console.log("🔥 userRoute.js LOADED ON RENDER 🔥");
+router.get("/debug/chrome", async (req, res) => {
+  try {
+    const chromium = require("@sparticuz/chromium");
+    const puppeteer = require("puppeteer-core");
+
+    const executablePath = await chromium.executablePath();
+
+    return res.json({
+      ok: true,
+      puppeteerCore: !!puppeteer,
+      chromium: !!chromium,
+      executablePath: executablePath || null,
+      node: process.version
+    });
+  } catch (e) {
+    return res.status(500).json({
+      ok: false,
+      message: e.message,
+      stack: e.stack
+    });
+  }
+});
+
 router.get("/debug/pdf", (req, res) => {
   res.json({ ok: true, msg: "debug route live" });
 });

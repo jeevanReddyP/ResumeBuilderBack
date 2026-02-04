@@ -195,10 +195,13 @@ const downloadResumePDF = async (req, res) => {
 
     return res.send(pdfBuffer);
   } catch (err) {
-    console.error("PDF generation failed:", err);
-    return res.status(500).json({ message: "PDF generation failed" });
-  }
-};
+  console.error("❌ PDF generation failed:", err);
+  return res.status(500).json({
+    message: err.message,
+    stack: err.stack
+  });
+}
+
 
 module.exports = {
   createResume,

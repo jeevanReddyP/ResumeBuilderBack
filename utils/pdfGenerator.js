@@ -5,31 +5,48 @@ const classic = require("../utils/resumeTemplates/classic");
 const minimal = require("../utils/resumeTemplates/minimal");
 const modern = require("../utils/resumeTemplates/modern");
 
-async function generateResumePDF(resume, templateId = "classic", theme = {}) {
-  let html;
+async function generateResumePDF(resume, templateId = "classic", theme = "light") {
+  // theme can be "light"/"dark" string
+  const themeObj = typeof theme === "string" ? { mode: theme } : (theme || {});
 
-  switch (templateId) {
-    case "modern":
-      html = modern(resume, theme);
-      break;
-    case "minimal":
-      html = minimal(resume, theme);
-      break;
-    default:
-      html = classic(resume, theme);
+  let html;
+  try {
+    switch (templateId) {
+      case "modern":
+        html = modern(resume, themeObj);
+        break;
+      case "minimal":
+        html = minimal(resume, themeObj);
+        break;
+      default:
+        html = classic(resume, themeObj);
+    }
+  } catch (e) {
+    console.error("❌ TEMPLATE ERROR:", e);
+    throw new Error("Template error: " + e.message);
   }
 
+  const executablePath = await chromium.executablePath();
+  if (!executablePath) throw new Error("Chromium executablePath not found");
+
   const browser = await puppeteer.launch({
-    args: chromium.args,
-    defaultViewport: chromium.defaultViewport,
-    executablePath: await chromium.executablePath(), // ✅ this fixes Render
+    executablePath,
     headless: chromium.headless,
+    args: [
+      ...chromium.args,
+      "--no-sandbox",
+      "--disable-setuid-sandbox",
+      "--disable-dev-shm-usage",
+      "--single-process",
+      "--no-zygote",
+      "--disable-gpu",
+    ],
   });
 
   try {
     const page = await browser.newPage();
-
-    await page.setContent(html, { waitUntil: "networkidle0" });
+    await page.setContent(html, { waitUntil: "domcontentloaded" });
+    await page.emulateMediaType("screen");
 
     const pdfBuffer = await page.pdf({
       format: "A4",
@@ -38,6 +55,9 @@ async function generateResumePDF(resume, templateId = "classic", theme = {}) {
     });
 
     return pdfBuffer;
+  } catch (e) {
+    console.error("❌ PUPPETEER ERROR:", e);
+    throw new Error("Puppeteer error: " + e.message);
   } finally {
     await browser.close();
   }
