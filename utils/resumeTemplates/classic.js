@@ -6,41 +6,51 @@ module.exports = (resume, theme = {}) => {
 <html>
 <head>
 <style>
-  body{
-    font-family: Arial, sans-serif;
-    padding: 30px;
-    color: ${theme.text || "#111"};
+  body{margin:0;font-family:Segoe UI, sans-serif;}
+  .wrap{display:flex;min-height:100vh;}
+  .left{
+    width:30%;
+    background:${theme.primary || "#2563eb"};
+    color:white;
+    padding:20px;
   }
-  h1{
-    margin-bottom: 4px;
-    color: ${theme.primary || "#1f2933"};
+  .right{
+    width:70%;
+    padding:30px;
+    color:${theme.text || "#111"};
   }
-  h2{
-    border-bottom: 1px solid #ddd;
-    margin-top: 18px;
-    color: ${theme.primary || "#1f2933"};
-  }
-  .small{color:#555}
+  h3{margin-bottom:5px}
+  p{margin-top:4px}
 </style>
 </head>
 
 <body>
+<div class="wrap">
 
-<h1>${p.firstname || ""} ${p.lastname || ""}</h1>
-<p class="small">
-  ${p.email || ""} | ${p.phone || ""} | ${p.linkedin || ""} | ${p.github || ""}
-</p>
+<div class="left">
+  <h2>${p.firstname || ""} ${p.lastname || ""}</h2>
+  <p>${p.email || ""}</p>
+  <p>${p.phone || ""}</p>
+  <p>${p.linkedin || ""}</p>
+  <p>${p.github || ""}</p>
 
-<h2>Education</h2>
+  <h3>Skills</h3>
+  <ul>
+    ${(resume.skill || []).map(s=>`<li>${s}</li>`).join("")}
+  </ul>
+</div>
+
+<div class="right">
+
+<h3>Education</h3>
 ${(resume.education || []).map(e => `
   <p>
     <strong>${e.degree || ""}</strong> - ${e.institution || ""}<br/>
-    ${e.startYear ? new Date(e.startYear).getFullYear() : ""} -
-    ${e.endDate ? new Date(e.endDate).getFullYear() : "Present"}
+    ${year(e.startYear)} - ${year(e.endDate)}
   </p>
 `).join("")}
 
-<h2>Experience</h2>
+<h3>Experience</h3>
 ${(resume.experience || []).map(exp => `
   <p>
     <strong>${exp.role || ""}</strong> - ${exp.company || ""}<br/>
@@ -49,12 +59,7 @@ ${(resume.experience || []).map(exp => `
   </p>
 `).join("")}
 
-<h2>Skills</h2>
-<ul>
-  ${(resume.skill || []).map(s => `<li>${s}</li>`).join("")}
-</ul>
-
-<h2>Projects</h2>
+<h3>Projects</h3>
 ${(resume.projects || []).map(pj => `
   <p>
     <strong>${pj.title || ""}</strong><br/>
@@ -63,14 +68,21 @@ ${(resume.projects || []).map(pj => `
   </p>
 `).join("")}
 
+</div>
+
+</div>
 </body>
 </html>
 `;
 };
 
-// helper inside same file
 function formatDate(date){
   if(!date) return "Present";
-  const d = new Date(date);
+  const d=new Date(date);
   return d.toLocaleDateString("en-US",{month:"short",year:"numeric"});
+}
+
+function year(date){
+  if(!date) return "Present";
+  return new Date(date).getFullYear();
 }

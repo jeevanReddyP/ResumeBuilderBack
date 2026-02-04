@@ -1,26 +1,25 @@
-module.exports = (resume, theme = {}) => {
+const safe = (v) => (v ? String(v) : "");
 
-  const p = resume.personalInfo || {};
+module.exports = (resume, theme = {}) => {
+  const p = resume?.personalInfo || {};
 
   return `
 <html>
 <head>
 <style>
-  body{margin:0;font-family:Segoe UI, sans-serif;}
-  .wrap{display:flex;min-height:100vh;}
-  .left{
+  body { margin:0; font-family:Segoe UI, sans-serif; }
+  .wrap { display:flex; min-height:100vh; }
+  .left {
     width:30%;
-    background:${theme.primary || "#2563eb"};
+    background:${safe(theme.primary) || "#2563eb"};
     color:white;
     padding:20px;
   }
-  .right{
+  .right {
     width:70%;
     padding:30px;
-    color:${theme.text || "#111"};
+    color:${safe(theme.text) || "#111"};
   }
-  h3{margin-bottom:5px}
-  p{margin-top:4px}
 </style>
 </head>
 
@@ -28,15 +27,15 @@ module.exports = (resume, theme = {}) => {
 <div class="wrap">
 
 <div class="left">
-  <h2>${p.firstname || ""} ${p.lastname || ""}</h2>
-  <p>${p.email || ""}</p>
-  <p>${p.phone || ""}</p>
-  <p>${p.linkedin || ""}</p>
-  <p>${p.github || ""}</p>
+  <h2>${safe(p.firstname)} ${safe(p.lastname)}</h2>
+  <p>${safe(p.email)}</p>
+  <p>${safe(p.phone)}</p>
+  <p>${safe(p.linkedin)}</p>
+  <p>${safe(p.github)}</p>
 
   <h3>Skills</h3>
   <ul>
-    ${(resume.skill || []).map(s=>`<li>${s}</li>`).join("")}
+    ${(resume.skill || []).map(s => `<li>${safe(s)}</li>`).join("")}
   </ul>
 </div>
 
@@ -45,7 +44,7 @@ module.exports = (resume, theme = {}) => {
 <h3>Education</h3>
 ${(resume.education || []).map(e => `
   <p>
-    <strong>${e.degree || ""}</strong> - ${e.institution || ""}<br/>
+    <strong>${safe(e.degree)}</strong> - ${safe(e.institution)}<br/>
     ${year(e.startYear)} - ${year(e.endDate)}
   </p>
 `).join("")}
@@ -53,36 +52,36 @@ ${(resume.education || []).map(e => `
 <h3>Experience</h3>
 ${(resume.experience || []).map(exp => `
   <p>
-    <strong>${exp.role || ""}</strong> - ${exp.company || ""}<br/>
+    <strong>${safe(exp.role)}</strong> - ${safe(exp.company)}<br/>
     ${formatDate(exp.startDate)} - ${formatDate(exp.endDate)}<br/>
-    ${exp.description || ""}
+    ${safe(exp.description)}
   </p>
 `).join("")}
 
 <h3>Projects</h3>
 ${(resume.projects || []).map(pj => `
   <p>
-    <strong>${pj.title || ""}</strong><br/>
-    ${pj.description || ""}<br/>
-    <em>${(pj.techStack || []).join(", ")}</em>
+    <strong>${safe(pj.title)}</strong><br/>
+    ${safe(pj.description)}<br/>
+    <em>${(pj.techStack || []).map(safe).join(", ")}</em>
   </p>
 `).join("")}
 
 </div>
-
 </div>
 </body>
 </html>
 `;
 };
 
-function formatDate(date){
-  if(!date) return "Present";
-  const d=new Date(date);
-  return d.toLocaleDateString("en-US",{month:"short",year:"numeric"});
+function formatDate(date) {
+  if (!date) return "Present";
+  const d = new Date(date);
+  return isNaN(d) ? "Present" : d.toLocaleDateString("en-US", { month: "short", year: "numeric" });
 }
 
-function year(date){
-  if(!date) return "Present";
-  return new Date(date).getFullYear();
+function year(date) {
+  if (!date) return "Present";
+  const d = new Date(date);
+  return isNaN(d) ? "Present" : d.getFullYear();
 }

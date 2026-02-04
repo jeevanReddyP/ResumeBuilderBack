@@ -174,9 +174,7 @@ const downloadResumePDF = async (req, res) => {
     const { id } = req.params;
     const { templateId = "classic", theme = "light" } = req.query;
 
-    if (!mongoose.Types.ObjectId.isValid(id)) {
-      return res.status(400).json({ message: "Invalid resume id" });
-    }
+    console.log("✅ DOWNLOAD HIT:", { id, templateId, theme });
 
     const resume = await Resume.findById(id);
     if (!resume) return res.status(404).json({ message: "Resume Not Found" });
@@ -193,15 +191,16 @@ const downloadResumePDF = async (req, res) => {
       `attachment; filename="resume-${templateId}-${id}.pdf"`
     );
 
-    return res.send(pdfBuffer);
+    return res.status(200).send(pdfBuffer);
   } catch (err) {
-  console.error("❌ PDF generation failed:", err);
-  return res.status(500).json({
-    message: err.message,
-    stack: err.stack
-  });
+    console.error("❌ PDF ERROR FULL:", err);
+    return res.status(500).json({
+      message: err.message,
+      stack: err.stack,
+    });
   }
-}
+};
+
 
 module.exports = {
   createResume,

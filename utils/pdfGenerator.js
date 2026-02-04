@@ -6,10 +6,9 @@ const minimal = require("../utils/resumeTemplates/minimal");
 const modern = require("../utils/resumeTemplates/modern");
 
 async function generateResumePDF(resume, templateId = "classic", theme = "light") {
-  // theme can be "light"/"dark" string
   const themeObj = typeof theme === "string" ? { mode: theme } : (theme || {});
 
-  let html;
+  let html = "";
   try {
     switch (templateId) {
       case "modern":
@@ -22,8 +21,12 @@ async function generateResumePDF(resume, templateId = "classic", theme = "light"
         html = classic(resume, themeObj);
     }
   } catch (e) {
-    console.error("❌ TEMPLATE ERROR:", e);
-    throw new Error("Template error: " + e.message);
+    console.error("❌ TEMPLATE FUNCTION CRASH:", e);
+    throw new Error("Template function crashed: " + e.message);
+  }
+
+  if (!html || typeof html !== "string") {
+    throw new Error("Template returned empty HTML");
   }
 
   const executablePath = await chromium.executablePath();
@@ -46,7 +49,6 @@ async function generateResumePDF(resume, templateId = "classic", theme = "light"
   try {
     const page = await browser.newPage();
     await page.setContent(html, { waitUntil: "domcontentloaded" });
-    await page.emulateMediaType("screen");
 
     const pdfBuffer = await page.pdf({
       format: "A4",
@@ -56,8 +58,8 @@ async function generateResumePDF(resume, templateId = "classic", theme = "light"
 
     return pdfBuffer;
   } catch (e) {
-    console.error("❌ PUPPETEER ERROR:", e);
-    throw new Error("Puppeteer error: " + e.message);
+    console.error("❌ PUPPETEER PDF ERROR:", e);
+    throw new Error("Puppeteer failed: " + e.message);
   } finally {
     await browser.close();
   }
