@@ -1,8 +1,7 @@
 const express = require("express");
 const authMiddelware = require("../middleware/authMiddleware");
 
-const { RegisterUser, loginUser } =
-  require("../controllers/authController");
+const { RegisterUser, loginUser } = require("../controllers/authController");
 
 const {
   createResume,
@@ -10,10 +9,13 @@ const {
   getResumeById,
   updateResume,
   deleteResume,
-  getmyResume
-} = require("../controllers/resumeController")
+  getmyResume,
+  downloadResumePDF, // ✅ include this here
+} = require("../controllers/resumeController");
 
 const router = express.Router();
+
+// Test route
 router.get("/test", (req, res) => {
   console.log("✅ /api/test HIT");
   res.json({ ok: true });
@@ -28,8 +30,11 @@ router.post("/resume", authMiddelware, createResume);
 router.patch("/resume/:id", authMiddelware, updateResume);
 router.get("/resume", authMiddelware, getResume);
 router.get("/resume/me", authMiddelware, getmyResume);
+
+// ✅ IMPORTANT: keep download BEFORE /resume/:id
+router.get("/resume/:id/download", authMiddelware, downloadResumePDF);
+
 router.get("/resume/:id", authMiddelware, getResumeById);
 router.delete("/resume/:id", authMiddelware, deleteResume);
-
 
 module.exports = router;

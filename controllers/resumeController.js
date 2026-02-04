@@ -1,151 +1,204 @@
-const Resume = require("../models/resumeModel")
-const User = require("../models/userModel")
-const puppeteer=require("puppeteer")
+const mongoose = require("mongoose");
+const Resume = require("../models/resumeModel");
+const generatePDF = require("../utils/pdfGenerator");
 
- const createResume = async (req, res) => {
-    try {
-        const userId = req.user.id
+// ✅ CREATE
+const createResume = async (req, res) => {
+  try {
+    const userId = req.user.id;
 
-        const resume = await Resume.create({
-            userId,
-            personalInfo: req.body.personalInfo,
-            education: req.body.education,
-            experience: req.body.experience,
-            skills: req.body.skills,
-            projects: req.body.projects,
-        })
+    const resume = await Resume.create({
+      userId,
+      personalInfo: req.body.personalInfo || {},
+      education: req.body.education || [],
+      experience: req.body.experience || [],
+      skill: req.body.skill || [],          // ✅ FIXED (skill not skills)
+      projects: req.body.projects || [],
+    });
 
-        res.status(201).json({
-            success: true,
-            message: "Resume created successfully",
-            resume,
-        })
-    } catch (error) {
-        res.status(500).json({
-            success: false,
-            message: error.message,
-        })
-    }
-}
+    return res.status(201).json({
+      success: true,
+      message: "Resume created successfully",
+      resume,
+    });
+  } catch (error) {
+    return res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
 
+// ✅ GET ALL USER RESUMES
+const getResume = async (req, res) => {
+  try {
+    const userId = req.user.id;
 
- const getResume = async (req, res) => {
-    try {
-        const userId = req.user.id
-        const resumes = await Resume.find({ userId })
-        if(!resumes){
-            return res.status(404).json({Msg:"Resumes are not found!"})
-        }
-        res.status(200).json({
-            success: true,
-            count: resumes.length,
-            resumes
-        })
-    } catch (error) {
-        console.log("Resume.error")
-        res.status(500).json({ Msg: error.message })
-    }
-}
+    const resumes = await Resume.find({ userId }).sort({ updatedAt: -1 });
 
+    return res.status(200).json({
+      success: true,
+      count: resumes.length,
+      resumes,
+    });
+  } catch (error) {
+    console.log("getResume error:", error);
+    return res.status(500).json({ message: error.message });
+  }
+};
+
+// ✅ GET BY ID (only owner)
 const getResumeById = async (req, res) => {
-    try {
-        const resumeId = req.params.id
-        const resume = await Resume.findOne({
-            _id: resumeId,
-            userId: req.user.id
-        })
-        if (!resume) {
-            return res.status(404).json({
-                success: false,
-                message: "Resume Not Found"
-            })
-        }
-        res.status(200).json({
-            success: true,
-            resume,
-        })
-    } catch (error) {
-        res.status(500).json({
-            success: false,
-            message: error.message
-        })
-    }
-}
+  try {
+    const resumeId = req.params.id;
 
-
- const updateResume = async (req, res) => {
-    try {
-        const resumeId = req.params.id
-        const userId = req.user.id
-        const allowedUpdates = [
-            "personalInfo",
-            "education",
-            "experience",
-            "skills",
-            "projects",
-        ];
-
-        const updates = {};
-        allowedUpdates.forEach(field => {
-            if (req.body[field]) updates[field] = req.body[field];
-        });
-        const updatedResume = await Resume.findOneAndUpdate(
-            { _id: resumeId, userId },
-            { $set: updates },
-            { new: true, runValidators: true }
-        )
-        if (!updatedResume) {
-            return res.status(404).json({ Msg: "Resume Not Found or access denied" })
-        }
-        res.status(200).json({
-            success: true,
-            message: "Resume updated successfully",
-            resume: updatedResume
-        })
-    } catch (error) {
-        res.status(500).json({
-            success: false,
-            message: error.message,
-        })
+    if (!mongoose.Types.ObjectId.isValid(resumeId)) {
+      return res.status(400).json({ success: false, message: "Invalid resume id" });
     }
-}
- const deleteResume = async (req, res) => {
-    try {
-        const userId = req.user.id
-        const resumeid = req.params.id
-        const resume = await Resume.findOneAndDelete(
-            { _id: resumeid, userId }
-        )
-        if (!resume) {
-            return res.status(404).json({ success: false, Msg: "Resume Not Found" })
-        }
-        res.status(200).json({
-            success: true,
-            message: "Resume Deleted Successfully"
-        })
-    } catch (error) {
-        res.status(500).json({
-            success: false,
-            Msg: error.message
-        })
-    }
-}
 
- const getmyResume = async (req, res) => {
-    try {
-        const userId = req.user.id
-        const resume = await Resume.findOne({ userId })
-        if (!resume) {
-            return res.status(404).json({ message: "Resume Not Found" })
-        }
-        res.status(200).json({
-            success: true,
-            resume
-        })
-    } catch (error) {
-        res.status(500).json({ message: error.message })
+    const resume = await Resume.findOne({
+      _id: resumeId,
+      userId: req.user.id,
+    });
+
+    if (!resume) {
+      return res.status(404).json({
+        success: false,
+        message: "Resume Not Found",
+      });
     }
-}
+
+    return res.status(200).json({
+      success: true,
+      resume,
+    });
+  } catch (error) {
+    return res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
+// ✅ UPDATE
+const updateResume = async (req, res) => {
+  try {
+    const resumeId = req.params.id;
+    const userId = req.user.id;
+
+    if (!mongoose.Types.ObjectId.isValid(resumeId)) {
+      return res.status(400).json({ success: false, message: "Invalid resume id" });
+    }
+
+    const allowedUpdates = ["personalInfo", "education", "experience", "skill", "projects"]; // ✅ FIXED
+
+    const updates = {};
+    allowedUpdates.forEach((field) => {
+      if (req.body[field] !== undefined) updates[field] = req.body[field];
+    });
+
+    const updatedResume = await Resume.findOneAndUpdate(
+      { _id: resumeId, userId },
+      { $set: updates },
+      { new: true, runValidators: true }
+    );
+
+    if (!updatedResume) {
+      return res.status(404).json({ message: "Resume Not Found or access denied" });
+    }
+
+    return res.status(200).json({
+      success: true,
+      message: "Resume updated successfully",
+      resume: updatedResume,
+    });
+  } catch (error) {
+    return res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
+// ✅ DELETE
+const deleteResume = async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const resumeId = req.params.id;
+
+    if (!mongoose.Types.ObjectId.isValid(resumeId)) {
+      return res.status(400).json({ success: false, message: "Invalid resume id" });
+    }
+
+    const resume = await Resume.findOneAndDelete({ _id: resumeId, userId });
+
+    if (!resume) {
+      return res.status(404).json({ success: false, message: "Resume Not Found" });
+    }
+
+    return res.status(200).json({
+      success: true,
+      message: "Resume Deleted Successfully",
+    });
+  } catch (error) {
+    return res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
+// ✅ GET MY RESUME (latest one)
+const getmyResume = async (req, res) => {
+  try {
+    const userId = req.user.id;
+
+    const resume = await Resume.findOne({ userId }).sort({ updatedAt: -1 });
+
+    if (!resume) {
+      return res.status(404).json({ message: "Resume Not Found" });
+    }
+
+    return res.status(200).json({
+      success: true,
+      resume,
+    });
+  } catch (error) {
+    return res.status(500).json({ message: error.message });
+  }
+};
+
+// ✅ DOWNLOAD PDF
+const downloadResumePDF = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { templateId = "classic", theme = "light" } = req.query;
+
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return res.status(400).json({ message: "Invalid resume id" });
+    }
+
+    const resume = await Resume.findById(id);
+    if (!resume) return res.status(404).json({ message: "Resume Not Found" });
+
+    if (resume.userId.toString() !== req.user.id) {
+      return res.status(403).json({ message: "Not allowed" });
+    }
+
+    const pdfBuffer = await generatePDF(resume, templateId, theme);
+
+    res.setHeader("Content-Type", "application/pdf");
+    res.setHeader(
+      "Content-Disposition",
+      `attachment; filename="resume-${templateId}-${id}.pdf"`
+    );
+
+    return res.send(pdfBuffer);
+  } catch (err) {
+    console.error("PDF generation failed:", err);
+    return res.status(500).json({ message: "PDF generation failed" });
+  }
+};
 
 module.exports = {
   createResume,
@@ -153,5 +206,6 @@ module.exports = {
   getResumeById,
   updateResume,
   deleteResume,
-  getmyResume
-}
+  getmyResume,
+  downloadResumePDF,
+};
