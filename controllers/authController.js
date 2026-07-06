@@ -5,28 +5,24 @@ const jwt = require("jsonwebtoken");
 
 
 const RegisterUser = async (req, res) => {
-  console.log("Register page")
   try {
     const { name, email, password } = req.body;
-console.log("Hello")
     if (!name || !email || !password) {
       return res.status(400).json({ message: "All fields are required" });
     }
-console.log("JWT_SECRET VALUE:", process.env.JWT_SECRET);
+
     const existing = await User.findOne({ email });
     if (existing) {
       return res.status(400).json({ message: "Email already registered" });
     }
 
-    // ✅ pre('save') will hash password automatically
     const user = new User({ name, email, password });
     await user.save();
 
-    // ✅ token (make sure JWT_SECRET exists in Render)
     const token = jwt.sign(
-      { id: user._id, email: user.email },
+      { id: user._id, email: user.email, role:user.role,},
       process.env.JWT_SECRET,
-      { expiresIn: "7d" }
+      { expiresIn: "1d" }
     );
 
     return res.status(201).json({
@@ -38,7 +34,7 @@ console.log("JWT_SECRET VALUE:", process.env.JWT_SECRET);
     console.log(err.message)
     console.error("REGISTER ERROR:", err);
 
-    // ✅ handle duplicate email nicely
+   
     if (err.code === 11000) {
       return res.status(400).json({ message: "Email already registered" });
     }
@@ -56,8 +52,9 @@ console.log("JWT_SECRET VALUE:", process.env.JWT_SECRET);
     if (!email || !password) {
       return res.status(400).json({ message: "Email and password are required" });
     }
-
+    console.log("Login Section",email,password)
     const user = await User.findOne({ email });
+  
     if (!user) {
       return res.status(400).json({ message: "Invalid email or password" });
     }

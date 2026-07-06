@@ -1,20 +1,24 @@
+
 const express = require("express");
 const authMiddelware = require("../middleware/authMiddleware");
+const authorizeRoles = require("../middleware/roleMiddleware");
+const authorizeOwnerOrAdmin = require("../middleware/authorizeOwnerOrAdmin");
 
 const { RegisterUser, loginUser } = require("../controllers/authController");
 
 const {
   createResume,
-  getResume,
-  getResumeById,
-  updateResume,
-  deleteResume,
-  getmyResume,
-  downloadResumePDF, // ✅ include this here
+  getResume,        
+  getResumeById,    
+  updateResume,     
+  deleteResume,     
+  getmyResume,      
+  downloadResumePDF 
 } = require("../controllers/resumeController");
 
 const router = express.Router();
 console.log("🔥 userRoute.js LOADED ON RENDER 🔥");
+
 router.get("/debug/chrome", async (req, res) => {
   try {
     const chromium = require("@sparticuz/chromium");
@@ -27,13 +31,13 @@ router.get("/debug/chrome", async (req, res) => {
       puppeteerCore: !!puppeteer,
       chromium: !!chromium,
       executablePath: executablePath || null,
-      node: process.version
+      node: process.version,
     });
   } catch (e) {
     return res.status(500).json({
       ok: false,
       message: e.message,
-      stack: e.stack
+      stack: e.stack,
     });
   }
 });
@@ -46,26 +50,34 @@ router.get("/debug/version", (req, res) => {
   res.json({ ok: true, time: new Date().toISOString() });
 });
 
-// Test route
 router.get("/test", (req, res) => {
   console.log("✅ /api/test HIT");
   res.json({ ok: true });
 });
 
-// Auth Routes
+
 router.post("/auth/register", RegisterUser);
 router.post("/auth/login", loginUser);
 
-// Resume Routes
-router.post("/resume", authMiddelware, createResume);
-router.patch("/resume/:id", authMiddelware, updateResume);
-router.get("/resume", authMiddelware, getResume);
-router.get("/resume/me", authMiddelware, getmyResume);
 
-// ✅ IMPORTANT: keep download BEFORE /resume/:id
-router.get("/resume/:id/download", authMiddelware, downloadResumePDF);
+router.post("/resume", authMiddelware, authorizeRoles("user", "admin"), createResume);
 
-router.get("/resume/:id", authMiddelware, getResumeById);
-router.delete("/resume/:id", authMiddelware, deleteResume);
+
+router.get("/resume/me", authMiddelware, authorizeRoles("user", "admin"), getmyResume);
+
+
+router.get("/resume", authMiddelware, authorizeRoles("admin"), getResume);
+
+
+router.get("/resume/:id/download", authMiddelware, authorizeOwnerOrAdmin, downloadResumePDF);
+
+
+router.get("/resume/:id", authMiddelware, authorizeOwnerOrAdmin, getResumeById);
+
+
+router.patch("/resume/:id", authMiddelware, authorizeOwnerOrAdmin, updateResume);
+
+
+router.delete("/resume/:id", authMiddelware, authorizeOwnerOrAdmin, deleteResume);
 
 module.exports = router;
