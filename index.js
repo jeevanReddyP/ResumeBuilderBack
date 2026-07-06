@@ -3,6 +3,7 @@ const cors = require("cors");
 const dotenv = require("dotenv");
 const ConnecttoDb = require("./config/db");
 const router = require("./routes/userRoute");
+const downloadResume=require("./routes/resumeRoutes")
 
 dotenv.config();
 const app = express();
@@ -29,6 +30,7 @@ app.options(/.*/, cors(corsOptions));
 
 app.use(express.json());
 app.use("/api", router);
+
 
 app.get("/", (req, res) => res.send("Backend Running"));
 

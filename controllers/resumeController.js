@@ -6,7 +6,7 @@ const generatePDF = require("../utils/pdfGenerator");
 const createResume = async (req, res) => {
   try {
     const userId = req.user.id;
-
+   console.log(req.user.role)
     const resume = await Resume.create({
       userId,
       personalInfo: req.body.personalInfo || {},

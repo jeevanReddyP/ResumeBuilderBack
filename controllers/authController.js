@@ -6,7 +6,7 @@ const jwt = require("jsonwebtoken");
 
 const RegisterUser = async (req, res) => {
   try {
-    const { name, email, password } = req.body;
+    const { name, email, password ,role} = req.body;
     if (!name || !email || !password) {
       return res.status(400).json({ message: "All fields are required" });
     }
@@ -16,7 +16,7 @@ const RegisterUser = async (req, res) => {
       return res.status(400).json({ message: "Email already registered" });
     }
 
-    const user = new User({ name, email, password });
+    const user = new User({ name, email, password ,role});
     await user.save();
 
     const token = jwt.sign(
@@ -47,14 +47,15 @@ const RegisterUser = async (req, res) => {
 
  const loginUser = async (req, res) => {
   try {
+    
     const { email, password } = req.body;
-
+     
     if (!email || !password) {
       return res.status(400).json({ message: "Email and password are required" });
     }
     console.log("Login Section",email,password)
     const user = await User.findOne({ email });
-  
+    console.log(user.role)
     if (!user) {
       return res.status(400).json({ message: "Invalid email or password" });
     }
@@ -65,7 +66,7 @@ const RegisterUser = async (req, res) => {
     }
 
     const token = jwt.sign(
-      { id: user._id, email: user.email },
+      { id: user._id, email: user.email, role:user.role},
       process.env.JWT_SECRET,
       { expiresIn: "7d" }
     );
@@ -73,7 +74,7 @@ const RegisterUser = async (req, res) => {
     return res.status(200).json({
       message: "Login successful",
       token,
-      user: { id: user._id, name: user.name, email: user.email }
+      user: { id: user._id, name: user.name, email: user.email, role:user.role }
     });
   } catch (error) {
     console.error("LOGIN ERROR:", error);

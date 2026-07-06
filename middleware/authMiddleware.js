@@ -1,9 +1,9 @@
 const jwt=require("jsonwebtoken")
 
 const authMiddelware= async (req,res,next)=>{
-    console.log("Hellonext")
-    const token = req.headers.authorization?.split(" ")[1]
 
+    const token = req.headers.authorization?.split(" ")[1]
+    console.log(token)
     if(!token){
         return res.status(401).json({Msg:"No token access denied"})
     }
@@ -11,6 +11,7 @@ const authMiddelware= async (req,res,next)=>{
     try {
         const decoded=jwt.verify(token,process.env.JWT_SECRET)
         req.user=decoded
+        console.log(req.user.role)
         next();
     } catch (error) {
         res.status(400).json({Msg:"Invalid token"})
