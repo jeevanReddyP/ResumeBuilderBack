@@ -63,7 +63,7 @@ router.post("/auth/login", loginUser);
 router.post("/resume", authMiddelware, authorizeRoles("user", "admin"), createResume);
 
 
-router.get("/resume/me", authMiddelware, authorizeRoles("user", "admin"), getmyResume);
+router.get("/resume/:id", authMiddelware, authorizeRoles("user", "admin"), getmyResume);
 
 
 router.get("/resume", authMiddelware, authorizeRoles("admin"), getResume);

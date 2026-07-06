@@ -153,7 +153,7 @@ const getmyResume = async (req, res) => {
   try {
     const userId = req.user.id;
 
-    const resume = await Resume.findOne({ userId }).sort({ updatedAt: -1 });
+    const resume = await Resume.find({ userId }).sort({ updatedAt: -1 });
 
     if (!resume) {
       return res.status(404).json({ message: "Resume Not Found" });
