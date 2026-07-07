@@ -1,11 +1,17 @@
-const puppeteer = require("puppeteer");
+const chromium = require("@sparticuz/chromium");
+const puppeteer = require("puppeteer-core");
 
 const classic = require("../utils/resumeTemplates/classic");
 const minimal = require("../utils/resumeTemplates/minimal");
 const modern = require("../utils/resumeTemplates/modern");
 
-async function generateResumePDF(resume, templateId = "classic", theme = "light") {
-  const themeObj = typeof theme === "string" ? { mode: theme } : (theme || {});
+async function generateResumePDF(
+  resume,
+  templateId = "classic",
+  theme = "light"
+) {
+  const themeObj =
+    typeof theme === "string" ? { mode: theme } : theme || {};
 
   let html = "";
 
@@ -23,18 +29,17 @@ async function generateResumePDF(resume, templateId = "classic", theme = "light"
   }
 
   const browser = await puppeteer.launch({
-    headless: true,
-    args: [
-      "--no-sandbox",
-      "--disable-setuid-sandbox"
-    ]
+    args: chromium.args,
+    defaultViewport: chromium.defaultViewport,
+    executablePath: await chromium.executablePath(),
+    headless: chromium.headless,
   });
 
   try {
     const page = await browser.newPage();
 
     await page.setContent(html, {
-      waitUntil: "networkidle0"
+      waitUntil: "networkidle0",
     });
 
     const pdfBuffer = await page.pdf({
@@ -44,8 +49,8 @@ async function generateResumePDF(resume, templateId = "classic", theme = "light"
         top: "16px",
         right: "16px",
         bottom: "16px",
-        left: "16px"
-      }
+        left: "16px",
+      },
     });
 
     return pdfBuffer;
