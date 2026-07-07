@@ -32,9 +32,8 @@ const createResume = async (req, res) => {
 // ✅ GET ALL USER RESUMES
 const getResume = async (req, res) => {
   try {
-    const userId = req.user.id;
-
-    const resumes = await Resume.find({ userId }).sort({ updatedAt: -1 });
+     const resumes = await Resume.find()
+      .sort({ updatedAt: -1 });
 
     return res.status(200).json({
       success: true,
@@ -149,25 +148,25 @@ const deleteResume = async (req, res) => {
 };
 
 // ✅ GET MY RESUME (latest one)
-const getmyResume = async (req, res) => {
+const getMyResume = async (req, res) => {
   try {
-    const userId = req.user.id;
-
-    const resume = await Resume.find({ userId }).sort({ updatedAt: -1 });
-
-    if (!resume) {
-      return res.status(404).json({ message: "Resume Not Found" });
-    }
+    const resumes = await Resume.find({
+      userId: req.user.id,
+    }).sort({ updatedAt: -1 });
 
     return res.status(200).json({
       success: true,
-      resume,
+      count: resumes.length,
+      resumes,
     });
+
   } catch (error) {
-    return res.status(500).json({ message: error.message });
+    return res.status(500).json({
+      success: false,
+      message: error.message,
+    });
   }
 };
-
 // ✅ DOWNLOAD PDF
 const downloadResumePDF = async (req, res) => {
   try {
@@ -208,6 +207,6 @@ module.exports = {
   getResumeById,
   updateResume,
   deleteResume,
-  getmyResume,
+  getMyResume,
   downloadResumePDF,
 };
